@@ -1,0 +1,122 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    align-items: center;
+}
+
+/* Center everything */
+html, body {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8f9fa; /* Light gray background */
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* Default font */
+}
+
+/* Container styles */
+.container {
+    max-width: 800px; /* Adjusted for Kanban board */
+    width: 100%; /* Ensure it doesn't overflow on smaller screens */
+    padding: 20px;
+    border-radius: 10px; /* Rounded corners */
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Box shadow */
+    overflow: auto; /* For scrolling if content overflows */
+}
+
+/* Header styles */
+h1, h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #007bff; /* Blue header color */
+}
+
+/* Task input bar styles */
+#task-input-bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#task-name-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+#add-task-btn {
+    padding: 10px 20px;
+    background-color: #28a745; /* Green button color */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#add-task-btn:hover {
+    background-color: #218838; /* Darker green button color on hover */
+}
+
+/* Kanban Board styles */
+.kanban-board {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Kanban Column styles */
+.kanban-column {
+    flex: 1;
+    padding: 0 10px;
+}
+
+/* Task item styles */
+.task-item {
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f0f0f0; /* Light gray background for task items */
+    border-radius: 200px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Box shadow for task items */
+}
+
+.btn-move-wip {
+    background-color: #007bff; /* Blue */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-left: 5px;
+}
+
+.btn-move-wip:hover {
+    background-color: #0056b3;
+}
+
+.btn-drop {
+    background-color: #9d1f2c; /* Red */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-left: 5px;
+}
+
+.btn-drop:hover {
+    background-color: #bd2130;
+}
+
+.btn-move-complete {
+    background-color: #007bff; /* Blue */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-left: 5px;
+}
