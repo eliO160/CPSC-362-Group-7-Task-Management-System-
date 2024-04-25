@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const taskNameInput = document.getElementById('task-name-input');
     const addTaskBtn = document.getElementById('add-task-btn');
 
-    addTaskBtn.addEventListener('click', function () {
+    addTaskBtn.addEventListener('click', async function () {
         const taskName = taskNameInput.value.trim();
         if (taskName) {
             kanbanBoard.addTask(taskName);
@@ -13,6 +13,15 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         clearInput(taskNameInput);
+
+        try {
+            // Make a POST request to create a new task
+            const newTask = await createTask(taskName);
+            console.log('Task created:', newTask);
+            // Add logic to update UI if needed
+        } catch (error) {
+            // Handle errors
+        }
     });
 });
 
@@ -120,4 +129,48 @@ class KanbanBoard {
 
 function clearInput(inputElement) {
     inputElement.value = '';
+}
+
+
+// Function to make a POST request to create a new task
+async function createTask(taskName) {
+    try {
+        const response = await fetch('http://localhost:5500/tasks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: taskName,
+                // Add other properties like description, dueDate, status if needed
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to create task');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error creating task:', error);
+        throw error;
+    }
+}
+
+// Function to make a GET request to fetch tasks
+async function fetchTasks() {
+    try {
+        const response = await fetch('http://localhost:5500/tasks');
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch tasks');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching tasks:', error);
+        throw error;
+    }
 }
