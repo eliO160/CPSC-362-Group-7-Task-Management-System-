@@ -18,7 +18,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //app.use(express.static(path.join(__dirname, 'public'))); //maybe fix this? don't need to put in public folder
 
 //Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017');
+mongoose.connect('mongodb+srv://kanban:1234@cluster0.b834syw.mongodb.net/');
 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console.log, 'MongoDB connection error:'));
