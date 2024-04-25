@@ -3,7 +3,8 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
-import mongo from "mongo";
+import cors from 'cors';
+import path from "path";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 //express app
@@ -11,26 +12,28 @@ const app = express();
 const port = 5500;
 
 //middleware
+app.use(cors());
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+//app.use(express.static(path.join(__dirname, 'public'))); //maybe fix this? don't need to put in public folder
 
-//connect to mongodb
-// Connect to MongoDB
-mongoose.connect('mongodb+srv://kanban:1234@cluster0.b834syw.mongodb.net/');
+//Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017');
 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console.log, 'MongoDB connection error:'));
 
 //define task schema
 const taskSchema = new mongoose.Schema({
-    name: String,
-    description: String,
-    dueDate: Date,
-    status: String // 'todo', 'wip', 'completed', 'dropped'
-});
+    name: { type: String, required: true },
+    description: { type: String, default: '' },
+    dueDate: { type: Date, default: null },
+    status: { type: String, enum: ['To Do', 'In Progress', 'Completed'], default: 'To Do' },
+  });
 const Task = mongoose.model('Task', taskSchema);
 
 //routes
-app.get("/tasks", (req, res) => {
+app.get("/", (req, res) => {
     // console.log(__dirname + "/front.html");
     res.sendFile(__dirname + "/front.html");
 });
@@ -46,7 +49,7 @@ app.post("/tasks", async (req, res) => {
     }
 });
 
-app.put('/tasks/:id', async (req, res) => {
+app.put('/', async (req, res) => {
     try {
         const taskId = req.params.id;
         const { name, description, dueDate, status } = req.body;
@@ -67,7 +70,7 @@ app.put('/tasks/:id', async (req, res) => {
     }
 });
 
-app.delete('/tasks/:id', async (req, res) => {
+app.delete('/', async (req, res) => {
     try {
         const taskId = req.params.id;
         const deletedTask = await Task.findByIdAndDelete(taskId);
