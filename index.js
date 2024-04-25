@@ -49,7 +49,7 @@ app.post("/tasks", async (req, res) => {
     }
 });
 
-app.put('/', async (req, res) => {
+app.put('/tasks', async (req, res) => {
     try {
         const taskId = req.params.id;
         const { name, description, dueDate, status } = req.body;
@@ -70,7 +70,7 @@ app.put('/', async (req, res) => {
     }
 });
 
-app.delete('/', async (req, res) => {
+app.delete('/tasks', async (req, res) => {
     try {
         const taskId = req.params.id;
         const deletedTask = await Task.findByIdAndDelete(taskId);
