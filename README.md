@@ -111,7 +111,19 @@ This flowchart illustrates the basic functions of the application:
      
 - BACKEND TEAM: Brian and Aaron
 
+Backend Development:
 
+We created an index.js file that utilizes Express, Node, and MongoDB libaries in order to build the backend for this Kanban project. 
 
+We defined a taskSchema to display the name, description, due date, and status for user entries. Additionally, we set up GET and POST routing requests in order to send data to the backend, save it, and then be able to retrieve the information from storage and render it onto the frontend. 
 
-      
+We also made adjustments to the app.js file, where we implemented functions to be able to fetch data requests and send responses to UI of the web application. 
+
+![image](https://github.com/notwhitelisted/CPSC-362-Group-7-Task-Management-System-/blob/main/mongodbobject.png)
+![image](https://github.com/notwhitelisted/CPSC-362-Group-7-Task-Management-System-/blob/main/webbrowserconsole.png)
+
+To run the program, type 'npm install' into the terminal to install all the necessary packages. You can open MongoDBCompass and connect to the backend address 'mongodb+srv://kanban:1234@cluster0.b834syw.mongodb.net/'. Once connected, what you input on the website should display in the backend and be saved there when you close and exit out of the website. 
+
+Video Documentation - Demonstrating How the Web Application Works
+
+https://youtu.be/zl2_19MIXqE?si=2UWmrIdzr3GsJQrc
