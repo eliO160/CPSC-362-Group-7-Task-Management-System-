@@ -119,7 +119,7 @@ We defined a taskSchema to display the name, description, due date, and status f
 
 We also made adjustments to the app.js file, where we implemented functions to be able to fetch data requests and send responses to UI of the web application. 
 
-![image](https://imgur.com/a/Wce59DH)
-![image](https://imgur.com/a/VSbgtNZ)
+![image](https://github.com/notwhitelisted/CPSC-362-Group-7-Task-Management-System-/blob/main/mongodbobject.png)
+![image](https://github.com/notwhitelisted/CPSC-362-Group-7-Task-Management-System-/blob/main/webbrowserconsole.png)
 
-      
+To run the program, type 'npm install' into the terminal to install all the necessary packages. You can open MongoDBCompass and connect to the backend address 'mongodb+srv://kanban:1234@cluster0.b834syw.mongodb.net/'. Once connected, what you input on the website should display in the backend and be saved there when you close and exit out of the website. 
