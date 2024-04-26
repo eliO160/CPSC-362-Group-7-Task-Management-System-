@@ -126,4 +126,4 @@ To run the program, type 'npm install' into the terminal to install all the nece
 
 Video Documentation - Demonstrating How the Web Application Works
 
-mongodb+srv://kanban:1234@cluster0.b834syw.mongodb.net/
+https://youtu.be/zl2_19MIXqE?si=2UWmrIdzr3GsJQrc
