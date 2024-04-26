@@ -21,7 +21,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 mongoose.connect('mongodb+srv://kanban:1234@cluster0.b834syw.mongodb.net/');
 
 const db = mongoose.connection;
-db.on('error', console.error.bind(console.log, 'MongoDB connection error:'));
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 //define task schema
 const taskSchema = new mongoose.Schema({
@@ -38,7 +38,18 @@ app.get("/", (req, res) => {
     res.sendFile(__dirname + "/front.html");
 });
 
-app.post("/tasks", async (req, res) => {
+app.get('/tasks', async (req, res) => {
+    try {
+        const tasks = await Task.find();
+        console.log(tasks); // Log tasks to verify
+        res.json(tasks);
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
+app.post('/tasks', async (req, res) => {
     try {
         const { name, description, dueDate, status } = req.body;
         const task = new Task({ name, description, dueDate, status});
@@ -49,7 +60,7 @@ app.post("/tasks", async (req, res) => {
     }
 });
 
-app.put('/tasks', async (req, res) => {
+app.put('/tasks/:id', async (req, res) => {
     try {
         const taskId = req.params.id;
         const { name, description, dueDate, status } = req.body;
@@ -70,7 +81,7 @@ app.put('/tasks', async (req, res) => {
     }
 });
 
-app.delete('/tasks', async (req, res) => {
+app.delete('/tasks/:id', async (req, res) => {
     try {
         const taskId = req.params.id;
         const deletedTask = await Task.findByIdAndDelete(taskId);
