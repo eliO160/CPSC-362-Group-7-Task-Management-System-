@@ -111,7 +111,15 @@ This flowchart illustrates the basic functions of the application:
      
 - BACKEND TEAM: Brian and Aaron
 
+Backend Development:
 
+We created an index.js file that utilizes Express, Node, and MongoDB libaries in order to build the backend for this Kanban project. 
 
+We defined a taskSchema to display the name, description, due date, and status for user entries. Additionally, we set up GET and POST routing requests in order to send data to the backend, save it, and then be able to retrieve the information from storage and render it onto the frontend. 
+
+We also made adjustments to the app.js file, where we implemented functions to be able to fetch data requests and send responses to UI of the web application. 
+
+![image](https://imgur.com/a/Wce59DH)
+![image](https://imgur.com/a/VSbgtNZ)
 
       
