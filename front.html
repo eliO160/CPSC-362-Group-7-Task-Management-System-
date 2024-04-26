@@ -206,11 +206,11 @@
 
         const db = firebase.firestore();
 
-        function addTaskToFirestore(taskName) {
+        function addTaskToFirestore(taskName, description, dueDate) {
             db.collection("tasks").add({
                 name: taskName,
-                description: "",
-                dueDate: ""
+                description: description,
+                dueDate: dueDate
             })
                 .then((docRef) => {
                     console.log("Document written with ID: ", docRef.id);
@@ -219,13 +219,21 @@
                     console.error("Error adding document: ", error);
                 });
         }
+
         function loadTasksFromFirestore() {
             const taskList = document.getElementById('todo-tasks');
 
             db.collection("tasks").get().then((querySnapshot) => {
                 querySnapshot.forEach((doc) => {
+                    const taskId = doc.id;
                     const taskName = doc.data().name;
-                    const task = new Task(taskName);
+                    const taskDescription = doc.data().description;
+                    const taskDueDate = doc.data().dueDate;
+
+                    // Instantiate Task object after Firestore data is retrieved
+                    const task = new Task(taskId, taskName, taskDescription, taskDueDate);
+
+                    // Append task element to the task list
                     taskList.appendChild(task.element);
                 });
             });
@@ -241,11 +249,15 @@
 
             addTaskBtn.addEventListener('click', function () {
                 const taskName = taskNameInput.value.trim();
+                const taskDescription = prompt("Enter Description");
+                const taskDueDate = prompt("Enter Due Date MM/DD/YY");
+
                 if (taskName) {
-                    kanbanBoard.addTask(taskName);
+                    kanbanBoard.addTask(taskName, taskDescription, taskDueDate);
 
                     // Add task to Firestore
-                    addTaskToFirestore(taskName);
+                    addTaskToFirestore(taskName, taskDescription, taskDueDate);
+
                 } else {
                     alert('Please enter a task name.');
                 }
@@ -257,45 +269,78 @@
         });
 
         class Task {
-            constructor(name) {
+            constructor(id, name, description, dueDate) {
+                this.id = id;
                 this.name = name;
-                this.description = prompt("Enter Description");
-                this.dueDate = prompt("Enter Due Date MM/DD/YY");
+                this.description = description || '';
+                this.dueDate = dueDate || '';
                 this.element = this.createTaskElement();
+                this.taskRef = db.collection('tasks').doc(id);
+
+                // Real-time updates for description
+                this.taskRef.onSnapshot((doc) => {
+                    this.description = doc.data().description || '';
+                    this.render();
+                });
+
+                // Real-time updates for due date
+                this.taskRef.onSnapshot((doc) => {
+                    this.dueDate = doc.data().dueDate || '';
+                    this.render();
+                });
             }
 
             createTaskElement() {
                 const taskItem = document.createElement('div');
                 taskItem.className = 'task-item';
-                taskItem.textContent = this.name;
 
+                // Title
+                const titleElement = document.createElement('div');
+                titleElement.textContent = this.name;
+                taskItem.appendChild(titleElement);
+
+                // Description
+                const descriptionElement = document.createElement('div');
+                descriptionElement.textContent = `Description: ${this.description || 'No description'}`;
+                taskItem.appendChild(descriptionElement);
+
+                // Due Date
+                const dueDateElement = document.createElement('div');
+                dueDateElement.textContent = `Due Date: ${this.dueDate || 'No due date'}`;
+                taskItem.appendChild(dueDateElement);
+
+                // Move to WIP Button
                 const moveToWipButton = this.createButton('Move to WIP', () => {
                     this.moveToColumn('wip-tasks');
                 });
+                taskItem.appendChild(moveToWipButton);
 
-                const dropButtonTD = this.createButton('Drop', () => {
+                // Drop Button
+                const dropButton = this.createButton('Drop', () => {
                     this.dropTask();
                 });
+                taskItem.appendChild(dropButton);
 
+                // Delete Button
                 const deleteButton = this.createButton('Delete', () => {
                     this.deleteTask();
                 });
-                deleteButton.style.backgroundColor = '#9d1f2c';
+                taskItem.appendChild(deleteButton);
 
-                const moveToCompleteButton = this.createButton('Move to Completed', () => {
+                // Move to Completed Button
+                const moveToCompletedButton = this.createButton('Move to Completed', () => {
                     this.moveToColumn('completed-tasks');
                 });
+                taskItem.appendChild(moveToCompletedButton);
 
-                const updateButtons = this.createUpdateButtons();
-
-                taskItem.appendChild(moveToWipButton);
-                taskItem.appendChild(dropButtonTD);
-                taskItem.appendChild(deleteButton);
-                taskItem.appendChild(moveToCompleteButton);
-                taskItem.appendChild(updateButtons);
+                // Update Buttons
+                const updateButtonsContainer = this.createUpdateButtons();
+                taskItem.appendChild(updateButtonsContainer);
 
                 return taskItem;
             }
+
+
 
             createButton(text, onClick) {
                 const button = document.createElement('button');
@@ -309,19 +354,25 @@
                 const container = document.createElement('div');
 
                 const checkDescription = this.createButton('View Description', () => {
-                    window.confirm(this.description || "No Description");
+                    alert(this.description || "No Description");
                 });
 
                 const editDescription = this.createButton('Edit Description', () => {
-                    this.description = prompt("Edit description", this.description);
+                    const newDescription = prompt("Edit description", this.description);
+                    if (newDescription !== null) {
+                        this.updateDescription(newDescription);
+                    }
                 });
 
                 const checkDueDate = this.createButton('View Due Date', () => {
-                    window.confirm(this.dueDate || "No Due Date");
+                    alert(this.dueDate || "No Due Date");
                 });
 
                 const editDueDate = this.createButton('Edit Due Date', () => {
-                    this.dueDate = prompt("Edit Due Date MM/DD/YY", this.dueDate);
+                    const newDueDate = prompt("Edit Due Date MM/DD/YY", this.dueDate);
+                    if (newDueDate !== null) {
+                        this.updateDueDate(newDueDate);
+                    }
                 });
 
                 container.appendChild(checkDescription);
@@ -330,6 +381,38 @@
                 container.appendChild(editDueDate);
 
                 return container;
+            }
+
+
+            updateDescription(newDescription) {
+                this.taskRef.update({ description: newDescription })
+                    .then(() => console.log('Description updated successfully'))
+                    .catch((error) => console.error('Error updating description:', error));
+            }
+
+            updateDueDate(newDueDate) {
+                this.taskRef.update({ dueDate: newDueDate })
+                    .then(() => console.log('Due date updated successfully'))
+                    .catch((error) => console.error('Error updating due date:', error));
+            }
+
+            updateTaskInFirestore() {
+                // Assuming 'taskId' is the unique identifier of the document to be updated
+                const taskRef = db.collection("tasks").doc(taskId);
+
+                // Create an object with all fields to be updated
+                const updatedData = {
+                    description: this.description,
+                    dueDate: this.dueDate
+                };
+                // Update the document with the new data
+                taskRef.update(updatedData)
+                    .then(() => {
+                        console.log("Document successfully updated!");
+                    })
+                    .catch((error) => {
+                        console.error("Error updating document: ", error);
+                    });
             }
 
             moveToColumn(columnId) {
@@ -345,7 +428,45 @@
             deleteTask() {
                 this.element.remove();
             }
+
+            render() {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item';
+
+                // Display task title
+                const titleDiv = document.createElement('div');
+                titleDiv.textContent = this.name;
+                taskItem.appendChild(titleDiv);
+
+                // Create buttons for task actions
+                const moveToWipButton = this.createButton('Move to WIP', () => {
+                    this.moveToColumn('wip-tasks');
+                });
+                const dropButton = this.createButton('Drop', () => {
+                    this.dropTask();
+                });
+                const deleteButton = this.createButton('Delete', () => {
+                    this.deleteTask();
+                });
+
+                // Append buttons to task item
+                taskItem.appendChild(moveToWipButton);
+                taskItem.appendChild(dropButton);
+                taskItem.appendChild(deleteButton);
+
+                // Create update buttons for viewing and editing description/due date
+                const updateButtons = this.createUpdateButtons();
+                taskItem.appendChild(updateButtons);
+
+                // Replace the existing element with the updated task item
+                this.element.replaceWith(taskItem);
+                this.element = taskItem;
+            }
+
+
+
         }
+
 
         class KanbanBoard {
             constructor() {
