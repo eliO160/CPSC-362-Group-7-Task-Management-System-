@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kanban Board Application</title>
     <style>
+        /* Existing CSS here... */
         * {
             margin: 0;
             padding: 0;
@@ -146,6 +147,13 @@
             margin-left: 5px;
         }
     </style>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+
 </head>
 
 <body>
@@ -179,9 +187,11 @@
         </div>
     </div>
 
+    <!-- ... (CSS remains unchanged) ... -->
+
     <!-- JavaScript -->
     <script>
-        // Your web app's Firebase configuration
+        // Initialize Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAI3b857m54UrRnHv1WFExx_2ovqwxEnZw",
             authDomain: "kanban-554a6.firebaseapp.com",
@@ -189,191 +199,168 @@
             storageBucket: "kanban-554a6.appspot.com",
             messagingSenderId: "369151194806",
             appId: "1:369151194806:web:52ae45539ed7710f21d817"
+
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
+
         const db = firebase.firestore();
 
+        function addTaskToFirestore(taskName) {
+            db.collection("tasks").add({
+                name: taskName,
+                description: "",
+                dueDate: ""
+            })
+                .then((docRef) => {
+                    console.log("Document written with ID: ", docRef.id);
+                })
+                .catch((error) => {
+                    console.error("Error adding document: ", error);
+                });
+        }
+        function loadTasksFromFirestore() {
+            const taskList = document.getElementById('todo-tasks');
+
+            db.collection("tasks").get().then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    const taskName = doc.data().name;
+                    const task = new Task(taskName);
+                    taskList.appendChild(task.element);
+                });
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
+            loadTasksFromFirestore();
+
+            const kanbanBoard = new KanbanBoard();
+
             const taskNameInput = document.getElementById('task-name-input');
             const addTaskBtn = document.getElementById('add-task-btn');
-            const todoTasks = document.getElementById('todo-tasks');
-            const wipTasks = document.getElementById('wip-tasks');
-            const droppedTasks = document.getElementById('dropped-tasks');
-            const completedTasks = document.getElementById('completed-tasks');
 
             addTaskBtn.addEventListener('click', function () {
                 const taskName = taskNameInput.value.trim();
-                const now = new Date();
-                const currentDateTime = now.toLocaleString();
-
                 if (taskName) {
-                    const taskItem = document.createElement('div');
-                    taskItem.className = 'task-item';
-                    taskItem.textContent = taskName;
-                    var desc = prompt("Enter Description");
-                    var duedate = prompt("Enter Due Date MM/DD/YY");
+                    kanbanBoard.addTask(taskName);
 
-                    // Create Move to WIP Button
-                    const moveToWipButton = document.createElement('button');
-                    moveToWipButton.textContent = 'Move to WIP';
-                    moveToWipButton.className = 'btn-move-wip';
-                    moveToWipButton.onclick = function () {
-                        wipTasks.appendChild(taskItem);
-                        taskItem.removeChild(moveToWipButton);
-                        taskItem.removeChild(dropButtonTD);
-                        taskItem.removeChild(deleteItemTodo);
-                        taskItem.appendChild(moveToCompleteButton);
-                        taskItem.appendChild(dropButtonWD);
-                        taskItem.appendChild(deleteItemWIP);
-                    };
-
-                    // Create Dropped Button ToDo -> Drop
-                    const dropButtonTD = document.createElement('button');
-                    dropButtonTD.textContent = 'Drop';
-                    dropButtonTD.className = 'btn-drop';
-                    dropButtonTD.onclick = function () {
-                        droppedTasks.appendChild(taskItem);
-                        taskItem.removeChild(moveToWipButton);
-                        taskItem.removeChild(dropButtonTD);
-                        taskItem.removeChild(editDescription);
-                        taskItem.removeChild(deleteItemTodo);
-                        taskItem.appendChild(deleteItemDropped);
-                    };
-
-                    // Create Dropped Button WIP -> Drop
-                    const dropButtonWD = document.createElement('button');
-                    dropButtonWD.textContent = 'Drop';
-                    dropButtonWD.className = 'btn-drop';
-                    dropButtonWD.onclick = function () {
-                        droppedTasks.appendChild(taskItem);
-                        taskItem.removeChild(moveToCompleteButton);
-                        taskItem.removeChild(dropButtonWD);
-                        taskItem.removeChild(editDescription);
-                        taskItem.removeChild(editDueDate);
-                        taskItem.removeChild(deleteItemWIP);
-                        taskItem.appendChild(deleteItemDropped);
-                    };
-
-                    // Create Move to Completed Button
-                    const moveToCompleteButton = document.createElement('button');
-                    moveToCompleteButton.textContent = 'Move to Completed';
-                    moveToCompleteButton.className = 'btn-move-complete';
-                    moveToCompleteButton.onclick = function () {
-                        completedTasks.appendChild(taskItem);
-                        taskItem.removeChild(moveToCompleteButton);
-                        taskItem.removeChild(dropButtonWD);
-                        taskItem.removeChild(editDescription);
-                        taskItem.removeChild(editDueDate);
-                        taskItem.removeChild(deleteItemWIP);
-                        taskItem.appendChild(deleteItemComplete);
-                    };
-
-                    // Check description 
-                    const checkDescription = document.createElement('button');
-                    checkDescription.textContent = 'View Description';
-                    checkDescription.className = 'btn-move-complete';
-                    checkDescription.onclick = function () {
-                        if (desc) {
-                            window.confirm(desc);
-                        } else {
-                            window.confirm("No Description");
-                        }
-                    };
-
-                    // Edit description 
-                    const editDescription = document.createElement('button');
-                    editDescription.textContent = 'Edit Description';
-                    editDescription.className = 'btn-move-complete';
-                    editDescription.onclick = function () {
-                        desc = prompt("Edit description");
-                    };
-
-                    // Check time 
-                    const checkTime = document.createElement('button');
-                    checkTime.textContent = 'View Time';
-                    checkTime.className = 'btn-move-complete';
-                    checkTime.onclick = function () {
-                        window.confirm(currentDateTime);
-                    };
-
-                    // Check Due Date
-                    const checkDueDate = document.createElement('button');
-                    checkDueDate.textContent = 'View Due Date';
-                    checkDueDate.className = 'btn-move-complete';
-                    checkDueDate.onclick = function () {
-                        window.confirm(duedate);
-                    };
-
-                    // Edit Due Date
-                    const editDueDate = document.createElement('button');
-                    editDueDate.textContent = 'Edit Due Date';
-                    editDueDate.className = 'btn-move-complete';
-                    editDueDate.onclick = function () {
-                        duedate = prompt("Edit description");
-                    };
-
-                    // Delete Todo Task
-                    const deleteItemTodo = document.createElement('button');
-                    deleteItemTodo.textContent = 'Delete Task';
-                    deleteItemTodo.className = 'btn-move-complete';
-                    deleteItemTodo.onclick = function () {
-                        if (confirm("Would you like to delete task?") == true) {
-                            todoTasks.removeChild(taskItem);
-                        }
-                    };
-
-                    // Delete WIP Task
-                    const deleteItemWIP = document.createElement('button');
-                    deleteItemWIP.textContent = 'Delete Task';
-                    deleteItemWIP.className = 'btn-move-complete';
-                    deleteItemWIP.onclick = function () {
-                        if (confirm("Would you like to delete task?") == true) {
-                            wipTasks.removeChild(taskItem);
-                        }
-                    };
-
-                    // Delete Complete Task
-                    const deleteItemComplete = document.createElement('button');
-                    deleteItemComplete.textContent = 'Delete Task';
-                    deleteItemComplete.className = 'btn-move-complete';
-                    deleteItemComplete.onclick = function () {
-                        if (confirm("Would you like to delete task?") == true) {
-                            completedTasks.removeChild(taskItem);
-                        }
-                    };
-
-                    // Delete Dropped Task
-                    const deleteItemDropped = document.createElement('button');
-                    deleteItemDropped.textContent = 'Delete Task';
-                    deleteItemDropped.className = 'btn-move-complete';
-                    deleteItemDropped.onclick = function () {
-                        if (confirm("Would you like to delete task?") == true) {
-                            droppedTasks.removeChild(taskItem);
-                        }
-                    };
-
-                    // Add buttons to the task item
-                    taskItem.appendChild(checkDescription);
-                    taskItem.appendChild(editDescription);
-                    taskItem.appendChild(moveToWipButton);
-                    taskItem.appendChild(dropButtonTD);
-                    taskItem.appendChild(checkTime);
-                    taskItem.appendChild(checkDueDate);
-                    taskItem.appendChild(editDueDate);
-                    taskItem.appendChild(deleteItemTodo);
-
-                    // Add the task to the 'To Do' column
-                    todoTasks.appendChild(taskItem);
-
-                    // Clear the input field
-                    taskNameInput.value = '';
+                    // Add task to Firestore
+                    addTaskToFirestore(taskName);
                 } else {
                     alert('Please enter a task name.');
                 }
+
+                clearInput(taskNameInput);
             });
+
+
         });
+
+        class Task {
+            constructor(name) {
+                this.name = name;
+                this.description = prompt("Enter Description");
+                this.dueDate = prompt("Enter Due Date MM/DD/YY");
+                this.element = this.createTaskElement();
+            }
+
+            createTaskElement() {
+                const taskItem = document.createElement('div');
+                taskItem.className = 'task-item';
+                taskItem.textContent = this.name;
+
+                const moveToWipButton = this.createButton('Move to WIP', () => {
+                    this.moveToColumn('wip-tasks');
+                });
+
+                const dropButtonTD = this.createButton('Drop', () => {
+                    this.dropTask();
+                });
+
+                const deleteButton = this.createButton('Delete', () => {
+                    this.deleteTask();
+                });
+                deleteButton.style.backgroundColor = '#9d1f2c';
+
+                const moveToCompleteButton = this.createButton('Move to Completed', () => {
+                    this.moveToColumn('completed-tasks');
+                });
+
+                const updateButtons = this.createUpdateButtons();
+
+                taskItem.appendChild(moveToWipButton);
+                taskItem.appendChild(dropButtonTD);
+                taskItem.appendChild(deleteButton);
+                taskItem.appendChild(moveToCompleteButton);
+                taskItem.appendChild(updateButtons);
+
+                return taskItem;
+            }
+
+            createButton(text, onClick) {
+                const button = document.createElement('button');
+                button.textContent = text;
+                button.className = 'btn-move-wip';
+                button.onclick = onClick.bind(this);
+                return button;
+            }
+
+            createUpdateButtons() {
+                const container = document.createElement('div');
+
+                const checkDescription = this.createButton('View Description', () => {
+                    window.confirm(this.description || "No Description");
+                });
+
+                const editDescription = this.createButton('Edit Description', () => {
+                    this.description = prompt("Edit description", this.description);
+                });
+
+                const checkDueDate = this.createButton('View Due Date', () => {
+                    window.confirm(this.dueDate || "No Due Date");
+                });
+
+                const editDueDate = this.createButton('Edit Due Date', () => {
+                    this.dueDate = prompt("Edit Due Date MM/DD/YY", this.dueDate);
+                });
+
+                container.appendChild(checkDescription);
+                container.appendChild(editDescription);
+                container.appendChild(checkDueDate);
+                container.appendChild(editDueDate);
+
+                return container;
+            }
+
+            moveToColumn(columnId) {
+                const column = document.getElementById(columnId);
+                column.appendChild(this.element);
+            }
+
+            dropTask() {
+                const droppedTasks = document.getElementById('dropped-tasks');
+                droppedTasks.appendChild(this.element);
+            }
+
+            deleteTask() {
+                this.element.remove();
+            }
+        }
+
+        class KanbanBoard {
+            constructor() {
+                this.todoColumn = document.getElementById('todo-tasks');
+            }
+
+            addTask(taskName) {
+                const task = new Task(taskName);
+                this.todoColumn.appendChild(task.element);
+            }
+        }
+
+        function clearInput(inputElement) {
+            inputElement.value = '';
+        }
     </script>
 
 </body>
