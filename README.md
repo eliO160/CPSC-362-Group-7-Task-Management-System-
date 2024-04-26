@@ -123,3 +123,7 @@ We also made adjustments to the app.js file, where we implemented functions to b
 ![image](https://github.com/notwhitelisted/CPSC-362-Group-7-Task-Management-System-/blob/main/webbrowserconsole.png)
 
 To run the program, type 'npm install' into the terminal to install all the necessary packages. You can open MongoDBCompass and connect to the backend address 'mongodb+srv://kanban:1234@cluster0.b834syw.mongodb.net/'. Once connected, what you input on the website should display in the backend and be saved there when you close and exit out of the website. 
+
+Video Documentation - Demonstrating How the Web Application Works
+
+mongodb+srv://kanban:1234@cluster0.b834syw.mongodb.net/
