@@ -221,20 +221,18 @@
         }
 
         function loadTasksFromFirestore() {
-            const taskList = document.getElementById('todo-tasks');
+            const columns = ['todo-tasks', 'wip-tasks', 'completed-tasks', 'dropped-tasks'];
 
-            db.collection("tasks").get().then((querySnapshot) => {
-                querySnapshot.forEach((doc) => {
-                    const taskId = doc.id;
-                    const taskName = doc.data().name;
-                    const taskDescription = doc.data().description;
-                    const taskDueDate = doc.data().dueDate;
+            columns.forEach((columnId) => {
+                const taskList = document.getElementById(columnId);
+                taskList.innerHTML = ''; // Clear existing tasks
 
-                    // Instantiate Task object after Firestore data is retrieved
-                    const task = new Task(taskId, taskName, taskDescription, taskDueDate);
-
-                    // Append task element to the task list
-                    taskList.appendChild(task.element);
+                db.collection("tasks").where('column', '==', columnId).get().then((querySnapshot) => {
+                    querySnapshot.forEach((doc) => {
+                        const taskData = doc.data();
+                        const task = new Task(doc.id, taskData.name, taskData.description, taskData.dueDate);
+                        taskList.appendChild(task.element);
+                    });
                 });
             });
         }
@@ -254,18 +252,13 @@
 
                 if (taskName) {
                     kanbanBoard.addTask(taskName, taskDescription, taskDueDate);
-
-                    // Add task to Firestore
                     addTaskToFirestore(taskName, taskDescription, taskDueDate);
-
                 } else {
                     alert('Please enter a task name.');
                 }
 
                 clearInput(taskNameInput);
             });
-
-
         });
 
         class Task {
@@ -277,15 +270,11 @@
                 this.element = this.createTaskElement();
                 this.taskRef = db.collection('tasks').doc(id);
 
-                // Real-time updates for description
+                // Real-time updates for description and due date
                 this.taskRef.onSnapshot((doc) => {
-                    this.description = doc.data().description || '';
-                    this.render();
-                });
-
-                // Real-time updates for due date
-                this.taskRef.onSnapshot((doc) => {
-                    this.dueDate = doc.data().dueDate || '';
+                    const newData = doc.data();
+                    this.description = newData.description || '';
+                    this.dueDate = newData.dueDate || '';
                     this.render();
                 });
             }
@@ -296,16 +285,19 @@
 
                 // Title
                 const titleElement = document.createElement('div');
+                titleElement.className = 'task-title';
                 titleElement.textContent = this.name;
                 taskItem.appendChild(titleElement);
 
                 // Description
                 const descriptionElement = document.createElement('div');
+                descriptionElement.className = 'task-description';
                 descriptionElement.textContent = `Description: ${this.description || 'No description'}`;
                 taskItem.appendChild(descriptionElement);
 
                 // Due Date
                 const dueDateElement = document.createElement('div');
+                dueDateElement.className = 'task-due-date';
                 dueDateElement.textContent = `Due Date: ${this.dueDate || 'No due date'}`;
                 taskItem.appendChild(dueDateElement);
 
@@ -418,7 +410,13 @@
             moveToColumn(columnId) {
                 const column = document.getElementById(columnId);
                 column.appendChild(this.element);
+
+                // Update Firestore document with new column
+                this.taskRef.update({ column: columnId })
+                    .then(() => console.log('Task moved to column:', columnId))
+                    .catch((error) => console.error('Error updating column:', error));
             }
+
 
             dropTask() {
                 const droppedTasks = document.getElementById('dropped-tasks');
@@ -433,38 +431,56 @@
                 const taskItem = document.createElement('div');
                 taskItem.className = 'task-item';
 
-                // Display task title
-                const titleDiv = document.createElement('div');
-                titleDiv.textContent = this.name;
-                taskItem.appendChild(titleDiv);
+                // Title
+                const titleElement = document.createElement('div');
+                titleElement.className = 'task-title';
+                titleElement.textContent = this.name;
+                taskItem.appendChild(titleElement);
 
-                // Create buttons for task actions
+                // Description
+                const descriptionElement = document.createElement('div');
+                descriptionElement.className = 'task-description';
+                descriptionElement.textContent = `Description: ${this.description || 'No description'}`;
+                taskItem.appendChild(descriptionElement);
+
+                // Due Date
+                const dueDateElement = document.createElement('div');
+                dueDateElement.className = 'task-due-date';
+                dueDateElement.textContent = `Due Date: ${this.dueDate || 'No due date'}`;
+                taskItem.appendChild(dueDateElement);
+
+                // Move to WIP Button
                 const moveToWipButton = this.createButton('Move to WIP', () => {
                     this.moveToColumn('wip-tasks');
                 });
+                taskItem.appendChild(moveToWipButton);
+
+                // Drop Button
                 const dropButton = this.createButton('Drop', () => {
                     this.dropTask();
                 });
+                taskItem.appendChild(dropButton);
+
+                // Delete Button
                 const deleteButton = this.createButton('Delete', () => {
                     this.deleteTask();
                 });
-
-                // Append buttons to task item
-                taskItem.appendChild(moveToWipButton);
-                taskItem.appendChild(dropButton);
                 taskItem.appendChild(deleteButton);
 
-                // Create update buttons for viewing and editing description/due date
-                const updateButtons = this.createUpdateButtons();
-                taskItem.appendChild(updateButtons);
+                // Move to Completed Button
+                const moveToCompletedButton = this.createButton('Move to Completed', () => {
+                    this.moveToColumn('completed-tasks');
+                });
+                taskItem.appendChild(moveToCompletedButton);
+
+                // Update Buttons
+                const updateButtonsContainer = this.createUpdateButtons();
+                taskItem.appendChild(updateButtonsContainer);
 
                 // Replace the existing element with the updated task item
                 this.element.replaceWith(taskItem);
                 this.element = taskItem;
             }
-
-
-
         }
 
 
